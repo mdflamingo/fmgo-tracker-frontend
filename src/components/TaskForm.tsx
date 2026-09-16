@@ -3,10 +3,10 @@ import type { FormEvent } from 'react'
 import {
   PRIORITY_LABELS,
   STATUS_LABELS,
-  isValidUUID,
   isoToLocalInput,
   localInputToIso,
 } from '../lib/utils'
+import type { Project } from '../types/project'
 import type {
   TaskCreateRequest,
   TaskPriority,
@@ -14,8 +14,11 @@ import type {
   TaskStatus,
   TaskUpdateRequest,
 } from '../types/task'
+import type { User } from '../types/user'
 
 interface TaskFormProps {
+  users: User[]
+  projects: Project[]
   initial?: TaskResponse | null
   submitting: boolean
   error?: string | null
@@ -23,21 +26,32 @@ interface TaskFormProps {
   onCancel: () => void
 }
 
-type FieldName =
-  | 'name'
-  | 'projectId'
-  | 'assignedId'
-  | 'reviewerId'
-  | 'deadline'
+type FieldName = 'name' | 'projectId' | 'assignedIds' | 'reviewerIds'
 
-export function TaskForm({ initial, submitting, error, onSubmit, onCancel }: TaskFormProps) {
+function toggleId(ids: string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
+}
+
+export function TaskForm({
+  users,
+  projects,
+  initial,
+  submitting,
+  error,
+  onSubmit,
+  onCancel,
+}: TaskFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [status, setStatus] = useState<TaskStatus>(initial?.status ?? 'backlog')
   const [priority, setPriority] = useState<TaskPriority>(initial?.priority ?? 'medium')
   const [projectId, setProjectId] = useState(initial?.project.id ?? '')
-  const [assignedId, setAssignedId] = useState(initial?.assignees[0]?.id ?? '')
-  const [reviewerId, setReviewerId] = useState(initial?.reviewers[0]?.id ?? '')
+  const [assignedIds, setAssignedIds] = useState<string[]>(
+    initial?.assignees.map((u) => u.id) ?? [],
+  )
+  const [reviewerIds, setReviewerIds] = useState<string[]>(
+    initial?.reviewers.map((u) => u.id) ?? [],
+  )
   const [deadline, setDeadline] = useState(
     initial?.deadline ? isoToLocalInput(initial.deadline) : '',
   )
@@ -48,21 +62,11 @@ export function TaskForm({ initial, submitting, error, onSubmit, onCancel }: Tas
 
   const isEdit = Boolean(initial)
 
-  const storeId = (fieldValue: string) => {
-    // keep existing ids so update does not drop other assignees/reviewers
-    const existing = initial ? initial.assignees.map((u) => u.id) : []
-    const ids = new Set(existing)
-    if (fieldValue.trim()) ids.add(fieldValue.trim())
-    return [...ids]
-  }
-
   const validate = (): boolean => {
     const errors: Partial<Record<FieldName, string>> = {}
     if (!name.trim()) errors.name = 'Name is required'
-    if (!isValidUUID(projectId)) errors.projectId = 'Valid project UUID is required'
-    if (!isValidUUID(assignedId)) errors.assignedId = 'Valid assignee UUID is required'
-    if (!isValidUUID(reviewerId)) errors.reviewerId = 'Valid reviewer UUID is required'
-    if (!deadline) errors.deadline = 'Deadline is required'
+    if (!projectId) errors.projectId = 'Project is required'
+    if (assignedIds.length === 0) errors.assignedIds = 'At least one assignee is required'
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -71,33 +75,27 @@ export function TaskForm({ initial, submitting, error, onSubmit, onCancel }: Tas
     e.preventDefault()
     if (!validate()) return
 
+    const base = {
+      name: name.trim(),
+      description: description.trim(),
+      status,
+      priority,
+      project_id: projectId,
+      deadline: deadline ? localInputToIso(deadline) : null,
+      assigned_ids: assignedIds,
+      reviewer_ids: reviewerIds,
+    }
+
     if (isEdit && initial) {
       const payload: TaskUpdateRequest = {
-        name: name.trim(),
-        description: description.trim(),
-        status,
-        priority,
-        project_id: projectId.trim(),
-        creator_id: initial.creator.id,
-        deadline: localInputToIso(deadline),
+        ...base,
         completed_at: markedDone ? new Date().toISOString() : null,
-        assigned_ids: storeId(assignedId),
-        reviewer_ids: storeId(reviewerId),
       }
       onSubmit(payload)
       return
     }
 
-    const payload: TaskCreateRequest = {
-      name: name.trim(),
-      description: description.trim(),
-      status,
-      priority,
-      project_id: projectId.trim(),
-      assigned_id: assignedId.trim(),
-      reviewer_id: reviewerId.trim(),
-      deadline: localInputToIso(deadline),
-    }
+    const payload: TaskCreateRequest = { ...base }
     onSubmit(payload)
   }
 
@@ -162,13 +160,25 @@ export function TaskForm({ initial, submitting, error, onSubmit, onCancel }: Tas
 
       <div className="form__row">
         <label className="field">
-          <span className="field__label">Project ID</span>
-          <input
-            className="field__input"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            placeholder="60601fee-2bf1-4721-ae6f-7636e79a0cba"
-          />
+          <span className="field__label">Project</span>
+          {projects.length === 0 ? (
+            <span className="field__hint">No projects yet. Create a project first.</span>
+          ) : (
+            <select
+              className="field__input"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            >
+              <option value="" disabled>
+                Select project…
+              </option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          )}
           {fieldError('projectId')}
         </label>
 
@@ -180,32 +190,53 @@ export function TaskForm({ initial, submitting, error, onSubmit, onCancel }: Tas
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
           />
-          {fieldError('deadline')}
         </label>
       </div>
 
       <div className="form__row">
-        <label className="field">
-          <span className="field__label">Assignee ID</span>
-          <input
-            className="field__input"
-            value={assignedId}
-            onChange={(e) => setAssignedId(e.target.value)}
-            placeholder="60601fee-2bf1-4721-ae6f-7636e79a0cba"
-          />
-          {fieldError('assignedId')}
-        </label>
+        <div className="field">
+          <span className="field__label">Assignees</span>
+          {users.length === 0 ? (
+            <span className="field__hint">No users available.</span>
+          ) : (
+            <div className="user-picker">
+              {users.map((user) => (
+                <label key={user.id} className="user-picker__option">
+                  <input
+                    type="checkbox"
+                    checked={assignedIds.includes(user.id)}
+                    onChange={() => setAssignedIds((ids) => toggleId(ids, user.id))}
+                  />
+                  <span className="user-picker__name">{user.username}</span>
+                  <span className="detail__muted">{user.email}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          {fieldError('assignedIds')}
+        </div>
 
-        <label className="field">
-          <span className="field__label">Reviewer ID</span>
-          <input
-            className="field__input"
-            value={reviewerId}
-            onChange={(e) => setReviewerId(e.target.value)}
-            placeholder="60601fee-2bf1-4721-ae6f-7636e79a0cba"
-          />
-          {fieldError('reviewerId')}
-        </label>
+        <div className="field">
+          <span className="field__label">Reviewers</span>
+          {users.length === 0 ? (
+            <span className="field__hint">No users available.</span>
+          ) : (
+            <div className="user-picker">
+              {users.map((user) => (
+                <label key={user.id} className="user-picker__option">
+                  <input
+                    type="checkbox"
+                    checked={reviewerIds.includes(user.id)}
+                    onChange={() => setReviewerIds((ids) => toggleId(ids, user.id))}
+                  />
+                  <span className="user-picker__name">{user.username}</span>
+                  <span className="detail__muted">{user.email}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          {fieldError('reviewerIds')}
+        </div>
       </div>
 
       {isEdit && (

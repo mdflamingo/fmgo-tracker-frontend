@@ -6,7 +6,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.92);
-  background-color: #0f1420;
+  background-color: #0d0a14;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,7 +22,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(1200px 600px at 20% -10%, #182036 0%, #0f1420 55%) fixed;
+  background: radial-gradient(1200px 600px at 20% -10%, #251a2e 0%, #0d0a14 55%) fixed;
 }
 
 h1,

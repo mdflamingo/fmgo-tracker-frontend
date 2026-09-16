@@ -1,17 +1,9 @@
+import type { Project } from './project'
+import type { User } from './user'
+
 export type TaskStatus = 'backlog' | 'in_progress' | 'review' | 'done'
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical'
-
-export interface ProjectDB {
-  id: string
-  name: string
-}
-
-export interface UserDB {
-  id: string
-  username: string
-  email: string
-}
 
 export interface TaskListResponse {
   id: string
@@ -19,6 +11,7 @@ export interface TaskListResponse {
   description: string
   status: TaskStatus
   priority: TaskPriority
+  project_id: string
   project_name: string
 }
 
@@ -28,10 +21,10 @@ export interface TaskResponse {
   description: string
   status: TaskStatus
   priority: TaskPriority
-  project: ProjectDB
-  creator: UserDB
-  assignees: UserDB[]
-  reviewers: UserDB[]
+  project: Project
+  creator: User
+  assignees: User[]
+  reviewers: User[]
   deadline: string | null
   completed: string | null
 }
@@ -42,9 +35,9 @@ export interface TaskCreateRequest {
   status: TaskStatus
   priority: TaskPriority
   project_id: string
-  assigned_id: string
-  reviewer_id: string
-  deadline: string
+  deadline: string | null
+  assigned_ids: string[]
+  reviewer_ids: string[]
 }
 
 export interface TaskUpdateRequest {
@@ -53,11 +46,10 @@ export interface TaskUpdateRequest {
   status: TaskStatus
   priority: TaskPriority
   project_id: string
-  creator_id: string
   deadline: string | null
   completed_at: string | null
-  assigned_ids: string[] | null
-  reviewer_ids: string[] | null
+  assigned_ids: string[]
+  reviewer_ids: string[]
 }
 
 export interface TaskCreateResponse {

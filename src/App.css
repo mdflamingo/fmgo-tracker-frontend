@@ -13,16 +13,62 @@
   margin-bottom: 24px;
 }
 
+.app__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app__logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
 .app__title {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #f9a8d4, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .app__loading {
   padding: 60px;
   text-align: center;
   color: #808da0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.app__loading-logo {
+  height: 140px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.85;
+  animation: app-logo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes app-logo-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ── Banners ─────────────────────────────────────────── */
@@ -31,7 +77,7 @@
   padding: 12px 16px;
   margin-bottom: 16px;
   border-radius: 8px;
-  background: #1b2236;
+  background: #1e1830;
   color: #808da0;
   font-size: 14px;
 }
@@ -62,12 +108,12 @@
 }
 
 .btn--primary {
-  background: #3b6cf5;
+  background: #ec4899;
   color: #fff;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #2d5be0;
+  background: #db2777;
 }
 
 .btn--ghost {
@@ -77,7 +123,7 @@
 
 .btn--ghost:hover:not(:disabled) {
   color: #c2c9d4;
-  background: #1b2236;
+  background: #1e1830;
 }
 
 .btn--danger {
@@ -91,6 +137,99 @@
 
 /* ── Board (Kanban) ──────────────────────────────────── */
 
+.app__main {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ── Project sidebar ─────────────────────────────────── */
+
+.sidebar {
+  background: #151126;
+  border: 1px solid #241b38;
+  border-radius: 10px;
+  padding: 14px;
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar__title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7a92;
+  margin-bottom: 10px;
+}
+
+.sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__item {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #c2c9d4;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar__item:hover {
+  background: #1e1830;
+  color: #e8ecf2;
+}
+
+.sidebar__item--active {
+  background: #2a1550;
+  color: #f9a8d4;
+}
+
+.sidebar__item--active:hover {
+  background: #2a1550;
+}
+
+.sidebar__item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__item-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7a92;
+  background: #1e1830;
+  border-radius: 10px;
+  padding: 1px 8px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.sidebar__item--active .sidebar__item-count {
+  color: #ec4899;
+  background: #39204f;
+}
+
+.sidebar__empty {
+  padding: 10px;
+  text-align: center;
+  color: #5a657a;
+  font-size: 13px;
+}
+
+/* ── Board (Kanban) ──────────────────────────────────── */
+
 .board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -99,8 +238,8 @@
 }
 
 .board__col {
-  background: #151a2a;
-  border: 1px solid #1f2740;
+  background: #151126;
+  border: 1px solid #241b38;
   border-radius: 10px;
   padding: 0;
   min-height: 200px;
@@ -116,7 +255,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #808da0;
-  border-bottom: 1px solid #1f2740;
+  border-bottom: 1px solid #241b38;
 }
 
 .board__col-dot {
@@ -166,14 +305,14 @@
   display: block;
   padding: 12px;
   border-radius: 8px;
-  background: #1b2236;
+  background: #1e1830;
   border: 1px solid #1f2740;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .task-card:hover {
-  border-color: #3b6cf5;
-  background: #1e2640;
+  border-color: #ec4899;
+  background: #241b36;
 }
 
 .task-card__top {
@@ -272,8 +411,8 @@
 
 .modal {
   position: relative;
-  background: #181e30;
-  border: 1px solid #262e46;
+  background: #1c1630;
+  border: 1px solid #332245;
   border-radius: 12px;
   padding: 28px;
   max-width: 640px;
@@ -353,8 +492,8 @@
 
 .field__input {
   padding: 8px 10px;
-  background: #111626;
-  border: 1px solid #262e46;
+  background: #141020;
+  border: 1px solid #332245;
   border-radius: 6px;
   color: #e8ecf2;
   font-size: 14px;
@@ -363,7 +502,7 @@
 }
 
 .field__input:focus {
-  border-color: #3b6cf5;
+  border-color: #ec4899;
 }
 
 textarea.field__input {
@@ -382,9 +521,53 @@ select.field__input {
   color: #808da0;
 }
 
+.field-hint {
+  font-size: 13px;
+  color: #5a657a;
+  line-height: 1.5;
+}
+
 .field-error {
   font-size: 12px;
   color: #f0827e;
+}
+
+/* User multi-select picker */
+.user-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #332245;
+  border-radius: 6px;
+  background: #141020;
+  padding: 4px;
+}
+
+.user-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #c2c9d4;
+  transition: background 0.15s;
+}
+
+.user-picker__option:hover {
+  background: #1e1830;
+}
+
+.user-picker__option input {
+  accent-color: #ec4899;
+}
+
+.user-picker__name {
+  font-weight: 500;
+  color: #e8ecf2;
 }
 
 /* ── Task detail ─────────────────────────────────────── */
@@ -472,6 +655,20 @@ select.field__input {
 /* ── Responsive ──────────────────────────────────────── */
 
 @media (max-width: 900px) {
+  .app__main {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: static;
+  }
+  .sidebar__list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sidebar__item {
+    border-radius: 999px;
+  }
   .board {
     grid-template-columns: repeat(2, 1fr);
   }
