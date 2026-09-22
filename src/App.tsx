@@ -4,11 +4,18 @@ import { createTask, deleteTask, fetchTask, fetchTaskList, updateTask } from './
 import { fetchUserList } from './api/users'
 import { ProjectForm } from './components/ProjectForm'
 import { ProjectSidebar } from './components/ProjectSidebar'
+import { TaskFilterBar } from './components/TaskFilterBar'
 import { TaskForm } from './components/TaskForm'
 import { TaskList } from './components/TaskList'
 import { TaskDetail } from './components/TaskDetail'
 import type { Project, ProjectCreateRequest } from './types/project'
-import type { TaskCreateRequest, TaskListResponse, TaskResponse, TaskUpdateRequest } from './types/task'
+import type {
+  TaskCreateRequest,
+  TaskListFilter,
+  TaskListResponse,
+  TaskResponse,
+  TaskUpdateRequest,
+} from './types/task'
 import type { User } from './types/user'
 import logoMain from './assets/logo-flamingo-1.png'
 import logoAlt from './assets/logo-flamingo-2.png'
@@ -30,6 +37,7 @@ function App() {
   const [users, setUsers] = useState<User[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
+  const [filters, setFilters] = useState<TaskListFilter>({})
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState<string | null>(null)
   const [modal, setModal] = useState<ModalState>({ kind: 'none' })
@@ -38,14 +46,14 @@ function App() {
 
   const loadTasks = useCallback(async () => {
     try {
-      setTasks(await fetchTaskList())
+      setTasks(await fetchTaskList(filters))
       setListError(null)
     } catch (err) {
       setListError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [filters])
 
   const loadReferenceData = useCallback(async () => {
     try {
@@ -59,9 +67,23 @@ function App() {
 
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect -- async load on mount
-    void loadTasks()
     void loadReferenceData()
-  }, [loadTasks, loadReferenceData])
+  }, [loadReferenceData])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadTasks()
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [loadTasks])
+
+  const hasActiveFilters =
+    Boolean(filters.name?.trim()) ||
+    Boolean(filters.status) ||
+    Boolean(filters.priority) ||
+    Boolean(filters.creator_id) ||
+    Boolean(filters.assigned_ids?.length) ||
+    Boolean(filters.reviewer_ids?.length)
 
   const openCreate = () => {
     setFormError(null)
@@ -157,7 +179,11 @@ function App() {
         </div>
       )}
       {!listError && !loading && tasks.length === 0 && (
-        <div className="banner">No tasks yet. Create your first task.</div>
+        <div className="banner">
+          {hasActiveFilters
+            ? 'No tasks match the current filters.'
+            : 'No tasks yet. Create your first task.'}
+        </div>
       )}
 
       <div className="app__main">
@@ -168,21 +194,25 @@ function App() {
           onSelect={setActiveProjectId}
         />
 
-        {loading ? (
-          <div className="app__loading">
-            <img className="app__loading-logo" src={logoAlt} alt="Flamingo Tracker" />
-            <div>Loading tasks…</div>
-          </div>
-        ) : (
-          <TaskList
-            tasks={
-              activeProjectId === null
-                ? tasks
-                : tasks.filter((task) => task.project_id === activeProjectId)
-            }
-            onSelect={openDetail}
-          />
-        )}
+        <div className="app__content">
+          <TaskFilterBar users={users} filter={filters} onChange={setFilters} />
+
+          {loading ? (
+            <div className="app__loading">
+              <img className="app__loading-logo" src={logoAlt} alt="Flamingo Tracker" />
+              <div>Loading tasks…</div>
+            </div>
+          ) : (
+            <TaskList
+              tasks={
+                activeProjectId === null
+                  ? tasks
+                  : tasks.filter((task) => task.project_id === activeProjectId)
+              }
+              onSelect={openDetail}
+            />
+          )}
+        </div>
       </div>
 
       {modal.kind !== 'none' && (

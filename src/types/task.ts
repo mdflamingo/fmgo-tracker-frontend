@@ -15,6 +15,18 @@ export interface TaskListResponse {
   project_name: string
 }
 
+export interface TaskListFilter {
+  name?: string
+  status?: TaskStatus
+  priority?: TaskPriority
+  project_id?: string
+  creator_id?: string
+  assigned_ids?: string[]
+  reviewer_ids?: string[]
+  limit?: number
+  offset?: number
+}
+
 export interface TaskResponse {
   id: string
   name: string

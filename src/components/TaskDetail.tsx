@@ -16,7 +16,6 @@ function UserList({ users, empty }: { users: { id: string; username: string; ema
       {users.map((user) => (
         <li key={user.id}>
           <span className="user-list__name">{user.username}</span>
-          <span className="detail__muted">{user.email}</span>
         </li>
       ))}
     </ul>
@@ -39,7 +38,6 @@ export function TaskDetail({ task, onEdit, onDelete, onClose }: TaskDetailProps)
         <div className="detail-block">
           <div className="detail-block__title">Project</div>
           <div className="detail-block__value">{task.project.name}</div>
-          <div className="detail__muted">{task.project.id}</div>
         </div>
 
         <div className="detail-block">

@@ -11,7 +11,9 @@ function TaskCard({ task, onSelect }: { task: TaskListResponse; onSelect: (id: s
   return (
     <button
       type="button"
-      className="task-card"
+      className={
+        task.priority === 'critical' ? 'task-card task-card--critical' : 'task-card'
+      }
       onClick={() => onSelect(task.id)}
       title={task.description}
     >

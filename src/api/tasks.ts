@@ -2,6 +2,7 @@ import { request } from './client'
 import type {
   TaskCreateRequest,
   TaskCreateResponse,
+  TaskListFilter,
   TaskListResponse,
   TaskResponse,
   TaskUpdateRequest,
@@ -58,8 +59,25 @@ function normalizeTask(raw: TaskResponseRaw): TaskResponse {
   }
 }
 
-export function fetchTaskList(): Promise<TaskListResponse[]> {
-  return request<TaskListResponse[]>('/task/list')
+export function fetchTaskList(filter: TaskListFilter = {}): Promise<TaskListResponse[]> {
+  const params = new URLSearchParams()
+  const set = (key: string, value: string | number | null | undefined) => {
+    if (value === undefined || value === null || value === '') return
+    params.set(key, String(value))
+  }
+
+  set('name', filter.name)
+  set('status', filter.status)
+  set('priority', filter.priority)
+  set('project_id', filter.project_id)
+  set('creator_id', filter.creator_id)
+  if (filter.assigned_ids?.length) params.set('assigned_ids', filter.assigned_ids.join(','))
+  if (filter.reviewer_ids?.length) params.set('reviewer_ids', filter.reviewer_ids.join(','))
+  set('limit', filter.limit)
+  set('offset', filter.offset)
+
+  const qs = params.toString()
+  return request<TaskListResponse[]>(`/task/list${qs ? `?${qs}` : ''}`)
 }
 
 export function fetchTask(id: string): Promise<TaskResponse> {
