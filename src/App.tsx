@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchProjectList, createProject } from './api/projects'
-import { createTask, deleteTask, fetchTask, fetchTaskList, updateTask } from './api/tasks'
+import {
+  changeTaskStatus,
+  createTask,
+  deleteTask,
+  fetchTask,
+  fetchTaskList,
+  updateTask,
+} from './api/tasks'
 import { fetchUserList } from './api/users'
 import { ProjectForm } from './components/ProjectForm'
 import { ProjectSidebar } from './components/ProjectSidebar'
@@ -14,6 +21,7 @@ import type {
   TaskListFilter,
   TaskListResponse,
   TaskResponse,
+  TaskStatus,
   TaskUpdateRequest,
 } from './types/task'
 import type { User } from './types/user'
@@ -156,6 +164,17 @@ function App() {
     }
   }
 
+  const handleMoveTask = async (id: string, status: TaskStatus) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
+    try {
+      await changeTaskStatus(id, status)
+      await loadTasks()
+    } catch (err) {
+      setListError(getErrorMessage(err))
+      await loadTasks()
+    }
+  }
+
   return (
     <div className="app">
       <header className="app__header">
@@ -210,6 +229,7 @@ function App() {
                   : tasks.filter((task) => task.project_id === activeProjectId)
               }
               onSelect={openDetail}
+              onMoveTask={handleMoveTask}
             />
           )}
         </div>

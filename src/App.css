@@ -301,6 +301,11 @@
   background: #34d399;
 }
 
+.board__col--drag-over {
+  border: 1px solid #7c5cff;
+  box-shadow: 0 0 12px rgba(124, 92, 255, 0.35);
+}
+
 .board__col-count {
   margin-left: auto;
   font-weight: 500;

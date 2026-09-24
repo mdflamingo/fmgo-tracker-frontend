@@ -5,6 +5,7 @@ import type {
   TaskListFilter,
   TaskListResponse,
   TaskResponse,
+  TaskStatus,
   TaskUpdateRequest,
 } from '../types/task'
 import type { Project } from '../types/project'
@@ -95,6 +96,23 @@ export function updateTask(id: string, data: TaskUpdateRequest): Promise<void> {
   return request<void>(`/task/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  })
+}
+
+export function changeTaskStatus(id: string, status: TaskStatus): Promise<void> {
+  return fetchTask(id).then((task) => {
+    const payload: TaskUpdateRequest = {
+      name: task.name,
+      description: task.description,
+      status,
+      priority: task.priority,
+      project_id: task.project.id,
+      deadline: task.deadline,
+      completed_at: status === 'done' ? new Date().toISOString() : null,
+      assigned_ids: task.assignees.map((user) => user.id),
+      reviewer_ids: task.reviewers.map((user) => user.id),
+    }
+    return updateTask(id, payload)
   })
 }
 
